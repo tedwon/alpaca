@@ -1,11 +1,11 @@
 package io.alpaca;
 
-import com.google.common.collect.Lists;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -16,7 +16,7 @@ import java.util.jar.JarFile;
  */
 public class App {
 
-    private static List<JarEntry> pomList = Lists.newArrayList();
+    private static List<JarEntry> pomList = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         String jarPath;
