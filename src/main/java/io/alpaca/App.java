@@ -35,7 +35,6 @@ public class App {
             while (entries.hasMoreElements()) {
                 JarEntry jarEntry = entries.nextElement();
                 if (jarEntry.getName().matches("META-INF/maven/.*/pom.xml")) {
-//                    pomSet.add(jarEntry);
                     pomList.add(jarEntry);
                 }
             }
