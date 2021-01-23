@@ -11,16 +11,19 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * Jar Analyzer.
+ */
 public class App {
 
     private static List<JarEntry> pomList = Lists.newArrayList();
 
     public static void main(String[] args) throws Exception {
-        String jarPath = null;
+        String jarPath;
         if (args != null && args.length == 1) {
             jarPath = args[0];
         } else {
-            System.out.println("Usage: java -jar alpaca.jar <JAR_FILE_PATH>");
+            System.out.println("Usage: java -jar alpaca-1.0.0.Final.jar <JAR_FILE_PATH>");
             return;
         }
 

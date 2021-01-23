@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.alpaca</groupId>
     <artifactId>alpaca</artifactId>
-    <version>0.1.0.Final</version>
+    <version>1.0.0.Final</version>
     <packaging>jar</packaging>
     <name>alpaca</name>
     <inceptionYear>2021</inceptionYear>
