@@ -27,9 +27,7 @@ public class App {
             return;
         }
 
-        File jarFile = Paths.get(jarPath).toFile();
-
-        try (JarFile jar = new JarFile(jarFile)) {
+        try (JarFile jar = new JarFile(Paths.get(jarPath).toFile())) {
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 JarEntry jarEntry = entries.nextElement();
