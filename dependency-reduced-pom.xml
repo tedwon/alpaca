@@ -12,7 +12,7 @@
       <name>Ted Won</name>
       <email>jwon@redhat.com</email>
       <roles>
-        <role>Senior Product Security Engineer</role>
+        <role>Red Hat Senior Product Security Engineer</role>
       </roles>
     </developer>
   </developers>
@@ -22,8 +22,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
-          <source>11</source>
-          <target>11</target>
+          <source>8</source>
+          <target>8</target>
           <compilerVersion>8</compilerVersion>
           <encoding>UTF-8</encoding>
           <showDeprecation>true</showDeprecation>
