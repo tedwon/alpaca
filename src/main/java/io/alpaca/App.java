@@ -11,7 +11,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * Jar Analyzer for "META-INF/maven/.*/pom.xml".
+ * Alpaca is a Jar Analyzer project.
+ * <p/>
+ * You can get bundled jars info including their version info from an uberjar. Alpaca will display the output in one line with comma separate..
  */
 public class App {
 
