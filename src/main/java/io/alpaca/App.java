@@ -3,7 +3,6 @@ package io.alpaca;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -12,7 +11,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * Jar Analyzer.
+ * Jar Analyzer for "META-INF/maven/.*/pom.xml".
  */
 public class App {
 
