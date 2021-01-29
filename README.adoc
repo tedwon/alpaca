@@ -18,6 +18,15 @@ java -jar alpaca-1.0.0.Final.jar <JAR_FILE_PATH>
 === Example
 [source,bash,options="nowrap"]
 ----
+$ java -jar alpaca-1.0.0.Final.jar alpaca-1.0.0.Final.jar
+
+META-INF/maven/io.alpaca/alpaca/1.0.0.Final,META-INF/maven/org.apache.maven/maven-model/3.6.3,META-INF/maven/org.codehaus.plexus/plexus-utils/3.2.1
+----
+
+''''''
+
+[source,bash,options="nowrap"]
+----
 $ java -jar alpaca-1.0.0.Final.jar /tmp/kubernetes-openshift-uberjar-4.6.3.jar
 
 META-INF/maven/io.fabric8/kubernetes-openshift-uberjar/4.6.3,META-INF/maven/io.fabric8/kubernetes-model/4.6.3,META-INF/maven/io.fabric8/kubernetes-client/4.6.3,META-INF/maven/io.fabric8/kubernetes-server-mock/4.6.3,META-INF/maven/io.fabric8/openshift-client/4.6.3,META-INF/maven/io.fabric8/openshift-server-mock/4.6.3
