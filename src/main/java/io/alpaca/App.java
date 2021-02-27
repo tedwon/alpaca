@@ -57,7 +57,7 @@ public class App {
                             jarVersion = model.getParent().getVersion();
                         }
                     }
-                    output.append(jarEntry.getName().replace("pom.xml", jarVersion));
+                    output.append(jarEntryName.replace("pom.xml", jarVersion));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
