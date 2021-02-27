@@ -18,6 +18,7 @@ import java.util.jar.JarFile;
 public class App {
 
     private static List<JarEntry> pomList = new ArrayList<>();
+    private static List<JarEntry> jarList = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         String jarPath;
@@ -32,7 +33,6 @@ public class App {
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 JarEntry jarEntry = entries.nextElement();
-//                System.out.println(jarEntry);
                 String jarEntryName = jarEntry.getName();
                 if (jarEntryName.matches("META-INF/maven/.*/pom.xml")) {
                     pomList.add(jarEntry);
@@ -40,7 +40,7 @@ public class App {
 
                 // return only the jar file name
                 if (jarEntryName.endsWith(".jar")) {
-                    pomList.add(jarEntry);
+                    jarList.add(jarEntry);
                 }
             }
 
@@ -57,22 +57,32 @@ public class App {
                             jarVersion = model.getParent().getVersion();
                         }
                     }
+                    output.append(jarEntry.getName().replace("pom.xml", jarVersion));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                // return only the jar file name
-                if (jarEntryName.endsWith(".jar")) {
-                    final String[] split = jarEntryName.split("/");
-                    if (split != null) {
-                        jarEntryName = split[split.length - 1];
-                    }
-                    output.append(jarEntryName);
-                } else {
-                    output.append(jarEntry.getName().replace("pom.xml", jarVersion));
-                }
-
                 if (i != pomList.size() - 1) {
+                    output.append(",");
+                }
+            }
+
+            if (jarList.size() > 0) {
+                output.append("\n");
+            }
+
+            for (int i = 0; i < jarList.size(); i++) {
+                final JarEntry jarEntry = jarList.get(i);
+                String jarEntryName = jarEntry.getName();
+
+                // return only the jar file name
+                final String[] split = jarEntryName.split("/");
+                if (split != null) {
+                    jarEntryName = split[split.length - 1];
+                }
+                output.append(jarEntryName);
+
+                if (i != jarList.size() - 1) {
                     output.append(",");
                 }
             }
