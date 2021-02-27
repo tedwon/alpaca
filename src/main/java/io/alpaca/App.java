@@ -40,10 +40,6 @@ public class App {
 
                 // return only the jar file name
                 if (jarEntryName.endsWith(".jar")) {
-                    final String[] split = jarEntryName.split("/");
-                    if (split != null) {
-                        jarEntryName = split[split.length - 1];
-                    }
                     pomList.add(jarEntry);
                 }
             }
@@ -67,7 +63,6 @@ public class App {
 
                 // return only the jar file name
                 if (jarEntryName.endsWith(".jar")) {
-
                     final String[] split = jarEntryName.split("/");
                     if (split != null) {
                         jarEntryName = split[split.length - 1];
