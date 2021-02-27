@@ -32,7 +32,18 @@ public class App {
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 JarEntry jarEntry = entries.nextElement();
-                if (jarEntry.getName().matches("META-INF/maven/.*/pom.xml")) {
+//                System.out.println(jarEntry);
+                String jarEntryName = jarEntry.getName();
+                if (jarEntryName.matches("META-INF/maven/.*/pom.xml")) {
+                    pomList.add(jarEntry);
+                }
+
+                // return only the jar file name
+                if (jarEntryName.endsWith(".jar")) {
+                    final String[] split = jarEntryName.split("/");
+                    if (split != null) {
+                        jarEntryName = split[split.length - 1];
+                    }
                     pomList.add(jarEntry);
                 }
             }
@@ -40,17 +51,32 @@ public class App {
             StringBuffer output = new StringBuffer();
             for (int i = 0; i < pomList.size(); i++) {
                 final JarEntry jarEntry = pomList.get(i);
+                String jarEntryName = jarEntry.getName();
                 String jarVersion = "";
                 try {
-                    Model model = new MavenXpp3Reader().read(jar.getInputStream(jarEntry));
-                    jarVersion = model.getVersion();
-                    if (jarVersion == null) {
-                        jarVersion = model.getParent().getVersion();
+                    if (jarEntryName.matches("META-INF/maven/.*/pom.xml")) {
+                        Model model = new MavenXpp3Reader().read(jar.getInputStream(jarEntry));
+                        jarVersion = model.getVersion();
+                        if (jarVersion == null) {
+                            jarVersion = model.getParent().getVersion();
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                output.append(jarEntry.getName().replace("pom.xml", jarVersion));
+
+                // return only the jar file name
+                if (jarEntryName.endsWith(".jar")) {
+
+                    final String[] split = jarEntryName.split("/");
+                    if (split != null) {
+                        jarEntryName = split[split.length - 1];
+                    }
+                    output.append(jarEntryName);
+                } else {
+                    output.append(jarEntry.getName().replace("pom.xml", jarVersion));
+                }
+
                 if (i != pomList.size() - 1) {
                     output.append(",");
                 }
