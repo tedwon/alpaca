@@ -22,17 +22,17 @@ public class AppTest {
         App.main(args);
     }
 
-    @Test
-    @DisplayName("bundled jar")
-    public void testBundledJar() throws Exception {
-        String[] args = {"/tmp/jenkins.war"};
-        App.main(args);
-    }
-
-    @Test
-    @DisplayName("uber jar")
-    public void testUberJar() throws Exception {
-        String[] args = {"/tmp/kubernetes-openshift-uberjar-4.6.3.jar"};
-        App.main(args);
-    }
+//    @Test
+//    @DisplayName("bundled jar")
+//    public void testBundledJar() throws Exception {
+//        String[] args = {"/tmp/jenkins.war"};
+//        App.main(args);
+//    }
+//
+//    @Test
+//    @DisplayName("uber jar")
+//    public void testUberJar() throws Exception {
+//        String[] args = {"/tmp/kubernetes-openshift-uberjar-4.6.3.jar"};
+//        App.main(args);
+//    }
 }
