@@ -6,7 +6,7 @@ Alpaca is a Jar Analyzer project. You can get bundled jars info including their 
 
 
 == Prerequisites
-* JDK 8+
+* JDK 11+
 
 
 == Usage
