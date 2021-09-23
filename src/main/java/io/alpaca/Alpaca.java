@@ -9,6 +9,7 @@ import org.jboss.logging.Logger;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Stream;
 
 /**
  * Generate manifest entries for a given jar file.
@@ -90,6 +92,22 @@ public class Alpaca {
 
     public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String targetDecompressDir) {
         final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
+
+        // Check if the input path is a directory?
+        if(Files.isDirectory(jarFilePath) && !Files.isRegularFile(jarFilePath)) {
+            // input path is a directory
+            // Get a file list in the directory
+            try (Stream<Path> stream = Files.walk(jarFilePath)) {
+                stream.parallel()
+                        .filter(Files::isRegularFile)
+                        .forEach(zipFile -> {
+                            final var manifestEntries = scanManifestEntry(productName, productVersion, zipFile, targetDecompressDir);
+                            manifests.addAll(manifestEntries);
+                        });
+            } catch (Exception e) {
+                LOG.errorf(e, "Exception occurred while list up files in %s\n", jarFilePath);
+            }
+        }
 
         boolean scanMainJarManifestFinished = false;
         ManifestEntry manifestEntry = null;
