@@ -5,66 +5,51 @@ import java.util.Objects;
 
 public class ManifestEntry implements Serializable {
 
-    private static final long serialVersionUID = 2138385057811617052L;
+    private static final long serialVersionUID = 3167639000206178577L;
 
     private String productName;
 
     private String productVersion;
 
-    private String jarName;
+    private String groupId;
 
-    private String jarArtifactId;
+    private String artifactId;
 
-    private String jarVersion;
+    private String version;
 
-    private String jarPomName;
+    private transient String pomName;
 
-    private String jarFilePath;
+    private String jarFileName;
 
-    private String bundledJarName;
+    private String path;
+
+    private String bundles;
 
     public ManifestEntry() {
     }
 
-    public ManifestEntry(String productName, String productVersion, String jarName, String jarArtifactId, String jarVersion, String jarPomName) {
+    public ManifestEntry(String productName, String productVersion, String groupId, String artifactId, String version, String jarFileName, String pomName, String path, String bundles) {
         this.productName = productName;
         this.productVersion = productVersion;
-        this.jarName = jarName;
-        this.jarArtifactId = jarArtifactId;
-        this.jarVersion = jarVersion;
-        this.jarPomName = jarPomName;
-    }
-
-    public ManifestEntry(String productName, String productVersion, String jarName, String jarArtifactId, String jarVersion, String jarPomName, String jarFilePath) {
-        this.productName = productName;
-        this.productVersion = productVersion;
-        this.jarName = jarName;
-        this.jarArtifactId = jarArtifactId;
-        this.jarVersion = jarVersion;
-        this.jarPomName = jarPomName;
-        this.jarFilePath = jarFilePath;
-    }
-
-    public ManifestEntry(String productName, String productVersion, String jarName, String jarArtifactId, String jarVersion, String jarPomName, String jarFilePath, String bundledJarName) {
-        this.productName = productName;
-        this.productVersion = productVersion;
-        this.jarArtifactId = jarArtifactId;
-        this.jarName = jarName;
-        this.jarVersion = jarVersion;
-        this.jarPomName = jarPomName;
-        this.jarFilePath = jarFilePath;
-        this.bundledJarName = bundledJarName;
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+        this.jarFileName = jarFileName;
+        this.pomName = pomName;
+        this.path = path;
+        this.bundles = bundles;
     }
 
     public ManifestEntry(ManifestEntry manifestEntry) {
         this.productName = manifestEntry.getProductName();
         this.productVersion = manifestEntry.getProductVersion();
-        this.jarArtifactId = manifestEntry.getJarArtifactId();
-        this.jarName = manifestEntry.getJarName();
-        this.jarVersion = manifestEntry.getJarVersion();
-        this.jarPomName = manifestEntry.getJarPomName();
-        this.jarFilePath = manifestEntry.getJarFilePath();
-        this.bundledJarName = manifestEntry.getBundledJarName();
+        this.groupId = manifestEntry.getGroupId();
+        this.artifactId = manifestEntry.getArtifactId();
+        this.version = manifestEntry.getVersion();
+        this.pomName = manifestEntry.getPomName();
+        this.jarFileName = manifestEntry.getJarFileName();
+        this.path = manifestEntry.getPath();
+        this.bundles = manifestEntry.getBundles();
     }
 
     public String getProductName() {
@@ -83,69 +68,102 @@ public class ManifestEntry implements Serializable {
         this.productVersion = productVersion;
     }
 
-    public String getJarName() {
-        return jarName;
+    public String getGroupId() {
+        return groupId;
     }
 
-    public void setJarName(String jarName) {
-        this.jarName = jarName;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
-    public String getJarArtifactId() {
-        return jarArtifactId;
+    public String getArtifactId() {
+        return artifactId;
     }
 
-    public void setJarArtifactId(String jarArtifactId) {
-        this.jarArtifactId = jarArtifactId;
+    public void setArtifactId(String artifactId) {
+        this.artifactId = artifactId;
     }
 
-    public String getJarVersion() {
-        return jarVersion;
+    public String getVersion() {
+        return version;
     }
 
-    public void setJarVersion(String jarVersion) {
-        this.jarVersion = jarVersion;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
-    public String getJarPomName() {
-        return jarPomName;
+    public String getPomName() {
+        return pomName;
     }
 
-    public void setJarPomName(String jarPomName) {
-        this.jarPomName = jarPomName;
+    public void setPomName(String pomName) {
+        this.pomName = pomName;
     }
 
-    public String getJarFilePath() {
-        return jarFilePath;
+    public String getJarFileName() {
+        return jarFileName;
     }
 
-    public void setJarFilePath(String jarFilePath) {
-        this.jarFilePath = jarFilePath;
+    public void setJarFileName(String jarFileName) {
+        this.jarFileName = jarFileName;
     }
 
-    public String getBundledJarName() {
-        return bundledJarName;
+    public String getPath() {
+        return path;
     }
 
-    public void setBundledJarName(String bundledJarName) {
-        this.bundledJarName = bundledJarName;
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getBundles() {
+        return bundles;
+    }
+
+    public void setBundles(String bundles) {
+        this.bundles = bundles;
     }
 
     public String toManifest() {
         final StringBuffer sb = new StringBuffer();
         sb.append(productName).append(":").append(productVersion)
-                .append("/").append(jarPomName).append("/").append(jarVersion)
-                .append("/").append(jarName);
+                .append("/").append(pomName).append("/").append(version)
+                .append("/").append(jarFileName);
         return sb.toString();
     }
 
     public String toManifestForUberJar() {
         final StringBuffer sb = new StringBuffer();
         sb.append(productName).append(":").append(productVersion)
-                .append("/").append(jarPomName).append("/").append(jarVersion)
-                .append("/").append(jarName);
-        if (bundledJarName != null && !"".equals(bundledJarName)) {
-            sb.append("/").append(bundledJarName);
+                .append("/").append(pomName).append("/").append(version)
+                .append("/").append(jarFileName);
+        if (bundles != null && !"".equals(bundles)) {
+            sb.append("/").append(bundles);
+        }
+        return sb.toString();
+    }
+
+
+    /**
+     * GAV(Group:Artifact:Version)
+     * <p/>
+     * e.g. pkg:mvn/org.apache.camel/camel-barcode@2.23.2.fuse-780036-redhat-00001
+     */
+    public String toDeptopiaManifest() {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("pkg:mvn/").append(groupId)
+                .append("/").append(artifactId)
+                .append("@").append(version)
+                .append("/").append(jarFileName)
+//                .append("/").append(path)
+        ;
+        return sb.toString();
+    }
+
+    public String toDeptopiaManifestForUberJar() {
+        final StringBuffer sb = new StringBuffer(toDeptopiaManifest());
+        if (bundles != null && !"".equals(bundles)) {
+            sb.append("/").append(bundles);
         }
         return sb.toString();
     }
@@ -154,8 +172,8 @@ public class ManifestEntry implements Serializable {
     public String toString() {
         final StringBuffer sb = new StringBuffer();
         sb.append(productName).append(":").append(productVersion)
-                .append("/").append(jarPomName).append("/").append(jarVersion)
-                .append("/").append(jarName).append("/").append(jarFilePath);
+                .append("/").append(pomName).append("/").append(version)
+                .append("/").append(jarFileName).append("/").append(path);
         return sb.toString();
     }
 
@@ -164,11 +182,11 @@ public class ManifestEntry implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ManifestEntry that = (ManifestEntry) o;
-        return Objects.equals(productVersion, that.productVersion) && Objects.equals(jarName, that.jarName) && Objects.equals(jarArtifactId, that.jarArtifactId) && Objects.equals(jarVersion, that.jarVersion) && Objects.equals(jarPomName, that.jarPomName) && Objects.equals(jarFilePath, that.jarFilePath) && Objects.equals(bundledJarName, that.bundledJarName);
+        return Objects.equals(productName, that.productName) && Objects.equals(productVersion, that.productVersion) && Objects.equals(groupId, that.groupId) && Objects.equals(artifactId, that.artifactId) && Objects.equals(version, that.version) && Objects.equals(jarFileName, that.jarFileName) && Objects.equals(path, that.path) && Objects.equals(bundles, that.bundles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(productVersion, jarName, jarArtifactId, jarVersion, jarPomName, jarFilePath, bundledJarName);
+        return Objects.hash(productName, productVersion, groupId, artifactId, version, jarFileName, path, bundles);
     }
 }
