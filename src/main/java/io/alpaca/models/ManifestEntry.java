@@ -1,8 +1,12 @@
 package io.alpaca.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ManifestEntry implements Serializable {
 
     private static final long serialVersionUID = 3167639000206178577L;
@@ -17,6 +21,7 @@ public class ManifestEntry implements Serializable {
 
     private String version;
 
+    @JsonIgnore
     private transient String pomName;
 
     private String jarFileName;
