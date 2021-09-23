@@ -274,7 +274,7 @@ public class Alpaca {
                 String jarEntryNameForJarFile = jarEntryForJarFile.getName();
                 if (jarEntryNameForJarFile.matches(".+\\.jar") || jarEntryNameForJarFile.matches(".+\\.war")
                         || jarEntryNameForJarFile.matches(".+\\.ear") || jarEntryNameForJarFile.matches(".+\\.rar")
-                        || jarEntryNameForJarFile.matches(".+\\.hpi")) {
+                        || jarEntryNameForJarFile.matches(".+\\.hpi") || jarEntryNameForJarFile.matches(".+\\.zip")) {
                     try {
                         InputStream input = jarFile.getInputStream(jarEntryForJarFile);
                         String tempDir = System.getProperty("java.io.tmpdir");
@@ -430,6 +430,9 @@ public class Alpaca {
         }
 
         final var manifestEntries = Alpaca.scanManifestEntry("fuse", "7.8.0", Paths.get(jarPath));
-        System.out.println(manifestEntries);
+        for (ManifestEntry manifestEntry: manifestEntries) {
+            System.out.println(manifestEntry);
+        }
+        System.out.println(manifestEntries.size());
     }
 }
