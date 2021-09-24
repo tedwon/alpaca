@@ -1,5 +1,6 @@
 package io.alpaca;
 
+import com.google.common.collect.Sets;
 import io.alpaca.models.ManifestEntry;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -7,8 +8,10 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -25,6 +28,25 @@ public class App {
     private static String MANIFEST = "manifest";
 
     public static void main(String[] args) throws Exception {
+//        final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
+
+//        ManifestEntry a = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
+//        ManifestEntry b = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
+////        ManifestEntry c = new ManifestEntry("aproductName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
+//        manifests.add(a);
+//        manifests.add(b);
+////        manifests.add(c);
+//
+//        System.out.println(manifests.size());
+//
+//        final Set<ManifestEntry> manifests2 = Collections.synchronizedSet(Sets.newHashSet());
+//        ManifestEntry a2 = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
+//        ManifestEntry b2 = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
+//        manifests2.add(a2);
+//        manifests2.add(b2);
+//
+//        manifests.addAll(manifests2);
+
         String targetClass = null;
         String jarPath;
         if (args != null && args.length == 1) {
@@ -42,11 +64,14 @@ public class App {
         StringBuffer output = new StringBuffer();
 
         if (targetClass != null && MANIFEST.equals(targetClass)) {
+            final Set<String> lineSet = Collections.synchronizedSortedSet(Sets.newTreeSet());
+
             final var manifestEntries = Alpaca.scanManifestEntry(Paths.get(jarPath));
             for (ManifestEntry manifestEntry : manifestEntries) {
-                output.append(manifestEntry.toDeptopiaManifest());
-                output.append("\n");
+//                lineSet.add(manifestEntry.toDeptopiaManifest());
+                lineSet.add(manifestEntry.toManifest());
             }
+            output.append(String.join("\n", lineSet));
         } else {
             try (JarFile jarFile = new JarFile(Paths.get(jarPath).toFile())) {
                 Enumeration<JarEntry> entries = jarFile.entries();
