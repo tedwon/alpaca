@@ -10,9 +10,13 @@ Alpaca is a Jar Analyzer project. You can get bundled jars info including their 
 
 
 == Usage
+There are two types/formats of manifesting with Alpaca.
+
 [source,bash,options="nowrap"]
 ----
 java -jar alpaca-1.0.0.Final.jar <JAR_FILE_PATH>
+java -jar alpaca-1.0.0.Final.jar manifest <JAR_FILE_PATH>
+java -jar alpaca-1.0.0.Final.jar manifest <JAR_DIRECTORY_PATH>
 ----
 
 === Example
@@ -30,6 +34,19 @@ META-INF/maven/io.alpaca/alpaca/1.0.0.Final,META-INF/maven/org.apache.maven/mave
 $ java -jar alpaca-1.0.0.Final.jar /tmp/kubernetes-openshift-uberjar-4.6.3.jar
 
 META-INF/maven/io.fabric8/kubernetes-openshift-uberjar/4.6.3,META-INF/maven/io.fabric8/kubernetes-model/4.6.3,META-INF/maven/io.fabric8/kubernetes-client/4.6.3,META-INF/maven/io.fabric8/kubernetes-server-mock/4.6.3,META-INF/maven/io.fabric8/openshift-client/4.6.3,META-INF/maven/io.fabric8/openshift-server-mock/4.6.3
+----
+
+
+[source,bash,options="nowrap"]
+----
+$ java -jar alpaca-1.0.0.Final.jar manifest /tmp/fuse-eap-installer-6.3.0.redhat-495.jar
+
+pkg:mvn/org.reflections/reflections@0.9.5-RC2_jboss-SP1/reflections-0.9.5-RC2_jboss-SP1.jar
+pkg:mvn/org.milyn/milyn-smooks-all@1.5.2.p1-redhat-1/milyn-smooks-all-1.5.2.p1-redhat-1.jar
+pkg:mvn/org.apache.camel/camel-xstream@2.17.0.redhat-630495/camel-xstream-2.17.0.redhat-630495.jar
+pkg:mvn/com.jcraft/jsch@0.1.55/jsch-0.1.55.jar
+pkg:mvn/com.google.code.gson/gson@1.2.2/gson-1.2.2.jar
+...
 ----
 
 
