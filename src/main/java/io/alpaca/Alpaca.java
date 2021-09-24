@@ -437,20 +437,4 @@ public class Alpaca {
         }
         return null;
     }
-
-    public static void main(String[] args) throws Exception {
-        String jarPath;
-        if (args != null && args.length == 1) {
-            jarPath = args[0];
-        } else {
-            System.out.println("Usage: java -jar alpaca-1.0.0.Final.jar <JAR_FILE_PATH>");
-            return;
-        }
-
-        final var manifestEntries = Alpaca.scanManifestEntry("fuse", "7.8.0", Paths.get(jarPath));
-        for (ManifestEntry manifestEntry: manifestEntries) {
-            System.out.println(manifestEntry);
-        }
-        System.out.println(manifestEntries.size());
-    }
 }
