@@ -94,7 +94,7 @@ public class Alpaca {
         final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
 
         // Check if the input path is a directory?
-        if(Files.isDirectory(jarFilePath) && !Files.isRegularFile(jarFilePath)) {
+        if (Files.isDirectory(jarFilePath) && !Files.isRegularFile(jarFilePath)) {
             // input path is a directory
             // Get a file list in the directory
             try (Stream<Path> stream = Files.walk(jarFilePath)) {
@@ -183,7 +183,7 @@ public class Alpaca {
                                 // to exclusive the main jar's pom.xml file from bundledjar entries
                                 jarsMainPOMFile = jarEntryNameForPOMFile;
                                 String groupId = model.getGroupId();
-                                if (groupId != null) {
+                                if (groupId != null && model.getParent() != null) {
                                     groupId = model.getParent().getGroupId();
                                 }
                                 if (groupId == null) {
@@ -298,11 +298,11 @@ public class Alpaca {
                         String tempDir = System.getProperty("java.io.tmpdir");
                         File bundledJarFile = new File(tempDir + File.separator + jarFileName + File.separator + jarEntryNameForJarFile);
                         FileUtils.copyInputStreamToFile(input, bundledJarFile);
-                        LOG.infof("Created file: %s", bundledJarFile);
+//                        LOG.infof("Created file: %s", bundledJarFile);
                         final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, bundledJarFile.toPath());
                         manifests.addAll(manifestEntries);
                         if (FileUtils.deleteQuietly(bundledJarFile)) {
-                            LOG.infof("Deleted file: %s", bundledJarFile);
+//                            LOG.infof("Deleted file: %s", bundledJarFile);
                         }
                     } catch (Exception e) {
                         LOG.errorf(e, "Exception occurred while processing %s\n", jarFileName + ":" + jarEntryNameForJarFile);
