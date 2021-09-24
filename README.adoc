@@ -1,4 +1,6 @@
 == Alpaca project
+Manifest your jar files.
+
 Alpaca is a Jar Analyzer project. You can get bundled jars info including their version info from an uberjar. In detail, Alpaca looks at "META-INF/maven/.*/pom.xml" in the uberjar. Alpaca will display the output in one line with comma separate. Please refer to the below how to use.
 
 
