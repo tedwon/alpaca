@@ -25,13 +25,6 @@ import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static io.alpaca.Utils.EAR;
-import static io.alpaca.Utils.JAR;
-import static io.alpaca.Utils.POM;
-import static io.alpaca.Utils.RAR;
-import static io.alpaca.Utils.TXT;
-import static io.alpaca.Utils.WAR;
-import static io.alpaca.Utils.XML;
 import static io.alpaca.Utils.decompressArchive;
 import static io.alpaca.Utils.isArchive;
 import static io.alpaca.Utils.isJavaArchive;
@@ -114,22 +107,6 @@ public class Alpaca {
                 stream.parallel()
                         .filter(Files::isRegularFile)
                         .filter(file -> !Pattern.compile(Pattern.quote("/\\.git/"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(TXT), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(XML), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(POM), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".pom.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote("-javadoc.jar"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote("-sources.jar"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".pom.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote("-sources.jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote("/MD5SUM"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote("/SHA256SUM"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
                         .forEach(file -> {
                             final var manifestEntries = scanManifestEntry(productName, productVersion, file, tmpDir, targetDecompressDir);
                             manifests.addAll(manifestEntries);
@@ -150,8 +127,6 @@ public class Alpaca {
                             final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir);
                             manifests.addAll(manifestEntries);
                         });
-                // Clean up decompressed dir
-//                FileUtils.deleteQuietly(Paths.get(targetUnzipDir).toFile());
             } else if (isJavaArchive(jarFilePath)) {
                 boolean scanMainJarManifestFinished = false;
                 ManifestEntry manifestEntry = null;
@@ -334,58 +309,32 @@ public class Alpaca {
                     while (entries.hasMoreElements()) {
                         JarEntry jarEntryForJarFile = entries.nextElement();
                         String jarEntryNameForJarFile = jarEntryForJarFile.getName();
-                        if (jarEntryNameForJarFile.matches(".+\\" + JAR) || jarEntryNameForJarFile.matches(".+\\" + WAR)
-                                || jarEntryNameForJarFile.matches(".+\\" + EAR) || jarEntryNameForJarFile.matches(".+\\" + RAR)
-                                || jarEntryNameForJarFile.matches(".+\\.hpi") || jarEntryNameForJarFile.matches(".+\\.zip")
-                                || jarEntryNameForJarFile.matches(".+\\.adm") || jarEntryNameForJarFile.matches(".+\\.tar")
-                                || jarEntryNameForJarFile.matches(".+\\.tar.gz")) {
-//                        if (!Pattern.compile(Pattern.quote(".class"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(TXT), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(XML), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(POM), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".pom.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".jar.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote("-javadoc.jar"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote("-sources.jar"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".pom.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote("-sources.jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".jar.asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".asc.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote("/MD5SUM"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote("/SHA256SUM"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-//                                && !Pattern.compile(Pattern.quote("/\\.git/"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()) {
-                            try {
-                                InputStream input = jarFile.getInputStream(jarEntryForJarFile);
-                                final var bundledJarFilePathStr = tmpDir + jarFileName + File.separator + jarEntryNameForJarFile;
-                                File bundledJarFile = new File(bundledJarFilePathStr);
-                                Path bundledJarFilePath = bundledJarFile.toPath();
-                                // Save the file to tmp dir
-                                FileUtils.copyInputStreamToFile(input, bundledJarFile);
+                        try {
+                            InputStream input = jarFile.getInputStream(jarEntryForJarFile);
+                            final var bundledJarFilePathStr = tmpDir + jarFileName + File.separator + jarEntryNameForJarFile;
+                            File bundledJarFile = new File(bundledJarFilePathStr);
+                            Path bundledJarFilePath = bundledJarFile.toPath();
+                            // Save the file to tmp dir
+                            FileUtils.copyInputStreamToFile(input, bundledJarFile);
 
-                                // Check if the file is an archive?
-                                if (isArchive(bundledJarFilePath)) {
-                                    // Decompress the archive
-                                    final var targetUnzipDir = tmpDir + bundledJarFilePathStr;
-                                    final Set<String> entrySet = decompressArchive(bundledJarFilePath, targetUnzipDir);
-                                    // Call this method recursively for the archive
-                                    entrySet.stream()
-                                            .parallel()
-                                            .forEach(archiveEntry -> {
-                                                final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir);
-                                                manifests.addAll(manifestEntries);
-                                            });
-                                } else {
-                                    final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, bundledJarFilePath, tmpDir);
-                                    manifests.addAll(manifestEntries);
-                                }
-//                                FileUtils.deleteQuietly(bundledJarFile);
-                            } catch (Exception e) {
-//                            LOG.errorf(e, "Exception occurred while processing %s\n", jarFileName + ":" + jarEntryNameForJarFile);
+                            // Check if the file is an archive?
+                            if (isArchive(bundledJarFilePath)) {
+                                // Decompress the archive
+                                final var targetUnzipDir = tmpDir + bundledJarFilePathStr;
+                                final Set<String> entrySet = decompressArchive(bundledJarFilePath, targetUnzipDir);
+                                // Call this method recursively for the archive
+                                entrySet.stream()
+                                        .parallel()
+                                        .forEach(archiveEntry -> {
+                                            final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir);
+                                            manifests.addAll(manifestEntries);
+                                        });
+                            } else {
+                                final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, bundledJarFilePath, tmpDir);
+                                manifests.addAll(manifestEntries);
                             }
-//                        }
+                        } catch (Exception e) {
+//                            LOG.errorf(e, "Exception occurred while processing %s\n", jarFileName + ":" + jarEntryNameForJarFile);
                         }
                     }
                 } catch (Exception e) {
