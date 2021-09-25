@@ -30,26 +30,7 @@ public class App {
 
     private static final String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "alpaca" + File.separator + ProcessHandle.current().pid() + File.separator;
 
-    public static void main(String[] args) throws Exception {
-//        final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
-
-//        ManifestEntry a = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
-//        ManifestEntry b = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
-////        ManifestEntry c = new ManifestEntry("aproductName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
-//        manifests.add(a);
-//        manifests.add(b);
-////        manifests.add(c);
-//
-//        System.out.println(manifests.size());
-//
-//        final Set<ManifestEntry> manifests2 = Collections.synchronizedSet(Sets.newHashSet());
-//        ManifestEntry a2 = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
-//        ManifestEntry b2 = new ManifestEntry("productName", "productVersion", "groupId", "artifactId", "version", "jarFileName", "pomName", "path", "bundles");
-//        manifests2.add(a2);
-//        manifests2.add(b2);
-//
-//        manifests.addAll(manifests2);
-
+    public static void main(String[] args) {
         String targetClass = null;
         String jarPath;
         if (args != null && args.length == 1) {
@@ -64,7 +45,7 @@ public class App {
             return;
         }
 
-        StringBuffer output = new StringBuffer();
+        final StringBuffer output = new StringBuffer();
 
         if (targetClass != null && MANIFEST.equals(targetClass)) {
             final Set<String> lineSet = Collections.synchronizedSortedSet(Sets.newTreeSet());
@@ -74,6 +55,9 @@ public class App {
                 lineSet.add(manifestEntry.toDeptopiaManifest());
             }
             output.append(String.join("\n", lineSet));
+
+            // Clean up decompressed dir
+            FileUtils.deleteQuietly(Paths.get(tmpDir).toFile());
         } else {
             try (JarFile jarFile = new JarFile(Paths.get(jarPath).toFile())) {
                 Enumeration<JarEntry> entries = jarFile.entries();
@@ -142,8 +126,5 @@ public class App {
         }
 
         System.out.println(output);
-
-        // Clean up decompressed dir
-        FileUtils.deleteQuietly(Paths.get(tmpDir).toFile());
     }
 }
