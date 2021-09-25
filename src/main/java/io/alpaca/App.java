@@ -2,6 +2,7 @@ package io.alpaca;
 
 import com.google.common.collect.Sets;
 import io.alpaca.models.ManifestEntry;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
@@ -26,6 +27,8 @@ public class App {
     private static List<JarEntry> jarList = new ArrayList<>();
 
     private static String MANIFEST = "manifest";
+
+    private static final String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "alpaca" + File.separator + ProcessHandle.current().pid() + File.separator;
 
     public static void main(String[] args) throws Exception {
 //        final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
@@ -66,10 +69,9 @@ public class App {
         if (targetClass != null && MANIFEST.equals(targetClass)) {
             final Set<String> lineSet = Collections.synchronizedSortedSet(Sets.newTreeSet());
 
-            final var manifestEntries = Alpaca.scanManifestEntry(Paths.get(jarPath));
+            final var manifestEntries = Alpaca.scanManifestEntry(Paths.get(jarPath), tmpDir);
             for (ManifestEntry manifestEntry : manifestEntries) {
-//                lineSet.add(manifestEntry.toDeptopiaManifest());
-                lineSet.add(manifestEntry.toManifest());
+                lineSet.add(manifestEntry.toDeptopiaManifest());
             }
             output.append(String.join("\n", lineSet));
         } else {
@@ -138,6 +140,10 @@ public class App {
                 ex.printStackTrace();
             }
         }
+
         System.out.println(output);
+
+        // Clean up decompressed dir
+        FileUtils.deleteQuietly(Paths.get(tmpDir).toFile());
     }
 }

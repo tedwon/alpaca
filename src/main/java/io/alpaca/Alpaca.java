@@ -25,6 +25,17 @@ import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static io.alpaca.Utils.EAR;
+import static io.alpaca.Utils.JAR;
+import static io.alpaca.Utils.POM;
+import static io.alpaca.Utils.RAR;
+import static io.alpaca.Utils.TXT;
+import static io.alpaca.Utils.WAR;
+import static io.alpaca.Utils.XML;
+import static io.alpaca.Utils.decompressArchive;
+import static io.alpaca.Utils.isArchive;
+import static io.alpaca.Utils.isJavaArchive;
+
 /**
  * Generate manifest entries for a given jar file.
  * <p/>
@@ -39,20 +50,6 @@ public class Alpaca {
     public static final String buildMetadata = "META-INF/build.metadata";
 
     public static final String UNKNOWN = "Unknown";
-
-    public static final String ZIP = ".zip";
-    public static final String ADM = ".adm";
-    public static final String JAR = ".jar";
-    public static final String POM = ".pom";
-    public static final String WAR = ".war";
-    public static final String EAR = ".ear";
-    public static final String RAR = ".rar";
-    public static final String HPI = ".hpi";
-    public static final String TAR = ".tar";
-    public static final String TAR_GZ = ".tar.gz";
-
-    public static final String TXT = ".txt";
-    public static final String WIN6 = ".win6";
 
     /**
      * comma separate.
@@ -97,15 +94,16 @@ public class Alpaca {
      * @param jarFilePath
      * @return
      */
-    public static Set<ManifestEntry> scanManifestEntry(Path jarFilePath) {
-        return scanManifestEntry("", "", jarFilePath, "");
+    public static Set<ManifestEntry> scanManifestEntry(final Path jarFilePath, final String tmpDir) {
+        return scanManifestEntry("", "", jarFilePath, tmpDir, "");
     }
 
-    public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath) {
-        return scanManifestEntry(productName, productVersion, jarFilePath, "");
+    public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String tmpDir) {
+        return scanManifestEntry(productName, productVersion, jarFilePath, tmpDir, "");
     }
 
-    public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String targetDecompressDir) {
+    public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String tmpDir, final String targetDecompressDir) {
+
         final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
 
         // Check if the input path is a directory?
@@ -116,267 +114,297 @@ public class Alpaca {
                 stream.parallel()
                         .filter(Files::isRegularFile)
                         .filter(file -> !Pattern.compile(Pattern.quote("/\\.git/"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(TXT), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".pom.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote("-javadoc.jar"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote("-sources.jar"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".pom.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote("-sources.jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(TXT), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(XML), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
 //                        .filter(file -> !Pattern.compile(Pattern.quote(POM), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-//                        .filter(file -> !Pattern.compile(Pattern.quote(".tar.gz."), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote("/MD5SUM"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote("/SHA256SUM"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
-                        .filter(file -> !Pattern.compile(Pattern.quote(".xml"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".pom.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote("-javadoc.jar"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote("-sources.jar"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".pom.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote("-sources.jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".jar.asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.md5"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote("/MD5SUM"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
+//                        .filter(file -> !Pattern.compile(Pattern.quote("/SHA256SUM"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
                         .forEach(file -> {
-                            final var manifestEntries = scanManifestEntry(productName, productVersion, file, targetDecompressDir);
+                            final var manifestEntries = scanManifestEntry(productName, productVersion, file, tmpDir, targetDecompressDir);
                             manifests.addAll(manifestEntries);
                         });
             } catch (Exception e) {
-                LOG.errorf(e, "Exception occurred while list up files in %s\n", jarFilePath);
+//                LOG.errorf(e, "Exception occurred while list up files in %s\n", jarFilePath);
             }
         } else {
-            boolean scanMainJarManifestFinished = false;
-            ManifestEntry manifestEntry = null;
+            // Check if the file is an archive?
+            if (isArchive(jarFilePath)) {
+                // Decompress the archive
+                final var targetUnzipDir = tmpDir + jarFilePath;
+                final Set<String> entrySet = decompressArchive(jarFilePath, targetUnzipDir);
+                // Call this method recursively for the archive
+                entrySet.stream()
+                        .parallel()
+                        .forEach(archiveEntry -> {
+                            final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir);
+                            manifests.addAll(manifestEntries);
+                        });
+                // Clean up decompressed dir
+//                FileUtils.deleteQuietly(Paths.get(targetUnzipDir).toFile());
+            } else if (isJavaArchive(jarFilePath)) {
+                boolean scanMainJarManifestFinished = false;
+                ManifestEntry manifestEntry = null;
 
-            final var jarPathToFile = jarFilePath.toFile();
-            final var jarAbsolutePath = jarPathToFile.getAbsolutePath().replaceAll(targetDecompressDir, "");
-            final var jarFileName = jarPathToFile.getName();
+                final var jarPathToFile = jarFilePath.toFile();
+                final var jarAbsolutePath = jarPathToFile.getAbsolutePath().replaceAll(targetDecompressDir, "");
+                final var jarFileName = jarPathToFile.getName();
 
-            try (final JarFile jarFile = new JarFile(jarPathToFile)) {
-                // check if the jar file has META-INF/MANIFEST
-                Manifest manifest = jarFile.getManifest();
-                if (manifest != null) {
-                    // read MANIFEST
-                    manifestEntry = getEntryFromJarManifest(productName, productVersion, jarFileName, manifest);
-                    if (manifestEntry != null) {
-                        manifestEntry.setPath(jarAbsolutePath);
+                try (final JarFile jarFile = new JarFile(jarPathToFile)) {
+                    // check if the jar file has META-INF/MANIFEST
+                    Manifest manifest = jarFile.getManifest();
+                    if (manifest != null) {
+                        // read MANIFEST
+                        manifestEntry = getEntryFromJarManifest(productName, productVersion, jarFileName, manifest);
+                        if (manifestEntry != null) {
+                            manifestEntry.setPath(jarAbsolutePath);
+                        }
                     }
-                }
 
-                // check if the jar file has META-INF/build.metadata
-                final var jarEntry = getBuildMetadataFile(jarFile);
-                if (!scanMainJarManifestFinished && jarEntry != null) {
-                    // read build.metadata
-                    InputStream input = jarFile.getInputStream(jarEntry);
-                    Properties prop = new Properties();
-                    // load a properties file
-                    prop.load(input);
+                    // check if the jar file has META-INF/build.metadata
+                    final var jarEntry = getBuildMetadataFile(jarFile);
+                    if (!scanMainJarManifestFinished && jarEntry != null) {
+                        // read build.metadata
+                        InputStream input = jarFile.getInputStream(jarEntry);
+                        Properties prop = new Properties();
+                        // load a properties file
+                        prop.load(input);
 
-                    // build.groupId -> commons-httpclient
-                    final String groupId = prop.getProperty("build.groupId");
+                        // build.groupId -> commons-httpclient
+                        final String groupId = prop.getProperty("build.groupId");
 
-                    // build.artifactId=camel-archetype-activemq
-                    final String artifactId = prop.getProperty("build.artifactId");
+                        // build.artifactId=camel-archetype-activemq
+                        final String artifactId = prop.getProperty("build.artifactId");
 
-                    final String pomName = artifactId;
+                        final String pomName = artifactId;
 
-                    // build.version=2.23.2.fuse-780036-redhat-00001
-                    // build.version.full -> 3.1.0.redhat-8
-                    final String version = prop.getProperty("build.version");
+                        // build.version=2.23.2.fuse-780036-redhat-00001
+                        // build.version.full -> 3.1.0.redhat-8
+                        final String version = prop.getProperty("build.version");
 
-                    if (artifactId != null && version != null) {
-                        manifestEntry = new ManifestEntry(productName, productVersion, groupId, artifactId, version, jarFileName, pomName, jarAbsolutePath, null);
-                        scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
+                        if (artifactId != null && version != null) {
+                            manifestEntry = new ManifestEntry(productName, productVersion, groupId, artifactId, version, jarFileName, pomName, jarAbsolutePath, null);
+                            scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
+                        }
                     }
-                }
 
-                // check whether it is uberjar or not
-                int pomCountInJarFile = countPOMFiletoCheckUberJar(jarFile);
-                if (pomCountInJarFile >= 2) {
-                    // to exclusive the main jar's pom.xml file from bundledjar entries
-                    String jarsMainPOMFile = null;
+                    // check whether it is uberjar or not
+                    int pomCountInJarFile = countPOMFiletoCheckUberJar(jarFile);
+                    if (pomCountInJarFile >= 2) {
+                        // to exclusive the main jar's pom.xml file from bundledjar entries
+                        String jarsMainPOMFile = null;
 
-                    // if it is uberjar
-                    // find pom.xml of the jar file among all pom.xml files including bundled jars in the file
-                    // read pom.xml
-                    Enumeration<JarEntry> entries = jarFile.entries();
-                    while (entries.hasMoreElements()) {
-                        JarEntry jarEntryForPOMFile = entries.nextElement();
-                        String jarEntryNameForPOMFile = jarEntryForPOMFile.getName();
-                        if (jarEntryNameForPOMFile.matches("META-INF/maven/.+/pom.xml")) {
-                            // jarEntryNameForPOMFile == META-INF/maven/org.slf4j/jcl-over-slf4j/pom.xml
-                            Model model = new MavenXpp3Reader().read(jarFile.getInputStream(jarEntryForPOMFile));
-                            String version = model.getVersion();
-                            if (version == null) {
-                                version = model.getParent().getVersion();
+                        // if it is uberjar
+                        // find pom.xml of the jar file among all pom.xml files including bundled jars in the file
+                        // read pom.xml
+                        Enumeration<JarEntry> entries = jarFile.entries();
+                        while (entries.hasMoreElements()) {
+                            JarEntry jarEntryForPOMFile = entries.nextElement();
+                            String jarEntryNameForPOMFile = jarEntryForPOMFile.getName();
+                            if (jarEntryNameForPOMFile.matches("META-INF/maven/.+/pom.xml")) {
+                                // jarEntryNameForPOMFile == META-INF/maven/org.slf4j/jcl-over-slf4j/pom.xml
+                                Model model = new MavenXpp3Reader().read(jarFile.getInputStream(jarEntryForPOMFile));
+                                String version = model.getVersion();
+                                if (version == null) {
+                                    version = model.getParent().getVersion();
+                                }
+
+                                // if this pom.xml is for the jarFile
+                                Path path = Paths.get(jarEntryNameForPOMFile);
+                                String artifactName = path.getName(3).toString();
+                                if (jarsMainPOMFile == null || jarsMainPOMFile.length() < artifactName.length()) {
+                                    if (jarFileName.contains(artifactName)) {
+                                        // to exclusive the main jar's pom.xml file from bundledjar entries
+                                        jarsMainPOMFile = jarEntryNameForPOMFile;
+                                        String groupId = model.getGroupId();
+                                        if (groupId != null && model.getParent() != null) {
+                                            groupId = model.getParent().getGroupId();
+                                        }
+                                        if (groupId == null) {
+                                            groupId = manifestEntry.getGroupId();
+                                        }
+                                        String artifactId = model.getArtifactId();
+                                        String pomName = model.getName();
+                                        if (artifactId != null && version != null) {
+                                            if (pomName == null || pomName.contains("${")) {
+                                                pomName = artifactId;
+                                            }
+                                            manifestEntry = new ManifestEntry(productName, productVersion, groupId, artifactId, version, jarFileName, pomName, jarAbsolutePath, null);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // create manifest entry for the bundled jar inside of the jar file
+                        List<JarEntry> pomList = new ArrayList<>();
+                        entries = jarFile.entries();
+                        while (entries.hasMoreElements()) {
+                            JarEntry jarEntryForPOMFile = entries.nextElement();
+                            String jarEntryNameForPOMFile = jarEntryForPOMFile.getName();
+                            if (jarEntryNameForPOMFile.matches("META-INF/maven/.+/pom.xml")) {
+                                if (!jarEntryNameForPOMFile.equals(jarsMainPOMFile)) {
+                                    // to exclusive the main jar's pom.xml file from bundledjar entries
+                                    pomList.add(jarEntryForPOMFile);
+                                }
+                            }
+                        }
+                        StringBuffer output = new StringBuffer();
+                        for (int i = 0; i < pomList.size(); i++) {
+                            final JarEntry jarEntryForBundledJar = pomList.get(i);
+                            String jarEntryName = jarEntryForBundledJar.getName();
+                            String jarVersion = "";
+                            try {
+                                if (jarEntryName.matches("META-INF/maven/.*/pom.xml")) {
+                                    Model model = new MavenXpp3Reader().read(jarFile.getInputStream(jarEntryForBundledJar));
+                                    jarVersion = model.getVersion();
+                                    if (jarVersion == null) {
+                                        jarVersion = model.getParent().getVersion();
+                                    }
+                                }
+                                output.append(jarEntryName.replace("pom.xml", jarVersion));
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
 
-                            // if this pom.xml is for the jarFile
-                            Path path = Paths.get(jarEntryNameForPOMFile);
-                            String artifactName = path.getName(3).toString();
-                            if (jarsMainPOMFile == null || jarsMainPOMFile.length() < artifactName.length()) {
-                                if (jarFileName.contains(artifactName)) {
-                                    // to exclusive the main jar's pom.xml file from bundledjar entries
-                                    jarsMainPOMFile = jarEntryNameForPOMFile;
+                            if (i != pomList.size() - 1) {
+                                output.append(COMMA_SEPARATE);
+                            }
+                        }
+                        manifestEntry.setBundles(output.toString());
+                        scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
+                    } else if (pomCountInJarFile == 1) {
+                        // if it is not uberjar
+                        if (!scanMainJarManifestFinished) {
+                            // create manifest entry for the jar file
+                            final Enumeration<JarEntry> entries = jarFile.entries();
+                            while (entries.hasMoreElements()) {
+                                JarEntry jarEntryForPOMFile = entries.nextElement();
+                                String jarEntryNameForPOMFile = jarEntryForPOMFile.getName();
+                                if (jarEntryNameForPOMFile.matches("META-INF/maven/.+/pom.xml")) {
+                                    Model model = new MavenXpp3Reader().read(jarFile.getInputStream(jarEntryForPOMFile));
+
                                     String groupId = model.getGroupId();
-                                    if (groupId != null && model.getParent() != null) {
+                                    if (groupId == null && model.getParent() != null) {
                                         groupId = model.getParent().getGroupId();
                                     }
                                     if (groupId == null) {
                                         groupId = manifestEntry.getGroupId();
                                     }
                                     String artifactId = model.getArtifactId();
+                                    String version = model.getVersion();
+                                    if (version == null) {
+                                        version = model.getParent().getVersion();
+                                    }
                                     String pomName = model.getName();
                                     if (artifactId != null && version != null) {
                                         if (pomName == null || pomName.contains("${")) {
                                             pomName = artifactId;
                                         }
                                         manifestEntry = new ManifestEntry(productName, productVersion, groupId, artifactId, version, jarFileName, pomName, jarAbsolutePath, null);
+                                        scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
                                     }
                                 }
                             }
                         }
-                    }
-
-                    // create manifest entry for the bundled jar inside of the jar file
-                    List<JarEntry> pomList = new ArrayList<>();
-                    entries = jarFile.entries();
-                    while (entries.hasMoreElements()) {
-                        JarEntry jarEntryForPOMFile = entries.nextElement();
-                        String jarEntryNameForPOMFile = jarEntryForPOMFile.getName();
-                        if (jarEntryNameForPOMFile.matches("META-INF/maven/.+/pom.xml")) {
-                            if (!jarEntryNameForPOMFile.equals(jarsMainPOMFile)) {
-                                // to exclusive the main jar's pom.xml file from bundledjar entries
-                                pomList.add(jarEntryForPOMFile);
-                            }
-                        }
-                    }
-                    StringBuffer output = new StringBuffer();
-                    for (int i = 0; i < pomList.size(); i++) {
-                        final JarEntry jarEntryForBundledJar = pomList.get(i);
-                        String jarEntryName = jarEntryForBundledJar.getName();
-                        String jarVersion = "";
-                        try {
-                            if (jarEntryName.matches("META-INF/maven/.*/pom.xml")) {
-                                Model model = new MavenXpp3Reader().read(jarFile.getInputStream(jarEntryForBundledJar));
-                                jarVersion = model.getVersion();
-                                if (jarVersion == null) {
-                                    jarVersion = model.getParent().getVersion();
-                                }
-                            }
-                            output.append(jarEntryName.replace("pom.xml", jarVersion));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        if (i != pomList.size() - 1) {
-                            output.append(COMMA_SEPARATE);
-                        }
-                    }
-                    manifestEntry.setBundles(output.toString());
-                    scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
-                } else if (pomCountInJarFile == 1) {
-                    // if it is not uberjar
-                    if (!scanMainJarManifestFinished) {
-                        // create manifest entry for the jar file
-                        final Enumeration<JarEntry> entries = jarFile.entries();
-                        while (entries.hasMoreElements()) {
-                            JarEntry jarEntryForPOMFile = entries.nextElement();
-                            String jarEntryNameForPOMFile = jarEntryForPOMFile.getName();
-                            if (jarEntryNameForPOMFile.matches("META-INF/maven/.+/pom.xml")) {
-                                Model model = new MavenXpp3Reader().read(jarFile.getInputStream(jarEntryForPOMFile));
-
-                                String groupId = model.getGroupId();
-                                if (groupId == null && model.getParent() != null) {
-                                    groupId = model.getParent().getGroupId();
-                                }
-                                if (groupId == null) {
-                                    groupId = manifestEntry.getGroupId();
-                                }
-                                String artifactId = model.getArtifactId();
-                                String version = model.getVersion();
-                                if (version == null) {
-                                    version = model.getParent().getVersion();
-                                }
-                                String pomName = model.getName();
-                                if (artifactId != null && version != null) {
-                                    if (pomName == null || pomName.contains("${")) {
-                                        pomName = artifactId;
-                                    }
-                                    manifestEntry = new ManifestEntry(productName, productVersion, groupId, artifactId, version, jarFileName, pomName, jarAbsolutePath, null);
-                                    scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // pom.xml not found in the jar file
-                    if (manifestEntry == null & !scanMainJarManifestFinished) {
-                        manifestEntry = new ManifestEntry(productName, productVersion, UNKNOWN, UNKNOWN, UNKNOWN, jarFileName, UNKNOWN, jarAbsolutePath, null);
-                        scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
                     } else {
-                        scanMainJarManifestFinished = true;
+                        // pom.xml not found in the jar file
+                        if (manifestEntry == null & !scanMainJarManifestFinished) {
+                            manifestEntry = new ManifestEntry(productName, productVersion, UNKNOWN, UNKNOWN, UNKNOWN, jarFileName, UNKNOWN, jarAbsolutePath, null);
+                            scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
+                        } else {
+                            scanMainJarManifestFinished = true;
+                        }
                     }
-                }
 
-                // check whether there is any other jar file inside the jar file
-                // if found a jar
-                // recursively call this method for the jar
-                final Enumeration<JarEntry> entries = jarFile.entries();
-                while (entries.hasMoreElements()) {
-                    JarEntry jarEntryForJarFile = entries.nextElement();
-                    String jarEntryNameForJarFile = jarEntryForJarFile.getName();
-                    if (jarEntryNameForJarFile.matches(".+\\.jar") || jarEntryNameForJarFile.matches(".+\\.war")
-                            || jarEntryNameForJarFile.matches(".+\\.ear") || jarEntryNameForJarFile.matches(".+\\.rar")
-                            || jarEntryNameForJarFile.matches(".+\\.hpi") || jarEntryNameForJarFile.matches(".+\\.zip")
-                            || jarEntryNameForJarFile.matches(".+\\.adm") || jarEntryNameForJarFile.matches(".+\\.tar")
-                            || jarEntryNameForJarFile.matches(".+\\.tar.gz")) {
-                        if (!Pattern.compile(Pattern.quote("-sources.jar"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote("/\\.git/"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(TXT), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".pom.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".jar.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote("-javadoc.jar"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote("-sources.jar"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".pom.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote("-sources.jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".jar.asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".asc.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote("/MD5SUM"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote("/SHA256SUM"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
-                                && !Pattern.compile(Pattern.quote(".xml"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()) {
+                    // Check if there is any other archive files inside the jar file
+                    // If found out an archive
+                    // Call this method recursively for the archive
+                    final Enumeration<JarEntry> entries = jarFile.entries();
+                    while (entries.hasMoreElements()) {
+                        JarEntry jarEntryForJarFile = entries.nextElement();
+                        String jarEntryNameForJarFile = jarEntryForJarFile.getName();
+                        if (jarEntryNameForJarFile.matches(".+\\" + JAR) || jarEntryNameForJarFile.matches(".+\\" + WAR)
+                                || jarEntryNameForJarFile.matches(".+\\" + EAR) || jarEntryNameForJarFile.matches(".+\\" + RAR)
+                                || jarEntryNameForJarFile.matches(".+\\.hpi") || jarEntryNameForJarFile.matches(".+\\.zip")
+                                || jarEntryNameForJarFile.matches(".+\\.adm") || jarEntryNameForJarFile.matches(".+\\.tar")
+                                || jarEntryNameForJarFile.matches(".+\\.tar.gz")) {
+//                        if (!Pattern.compile(Pattern.quote(".class"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(TXT), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(XML), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(POM), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".pom.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".jar.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote("-javadoc.jar"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote("-sources.jar"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".pom.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote("-sources.jar.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".jar.asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".asc.md5"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote(".asc.sha1"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote("/MD5SUM"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote("/SHA256SUM"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()
+//                                && !Pattern.compile(Pattern.quote("/\\.git/"), Pattern.CASE_INSENSITIVE).matcher(jarEntryNameForJarFile).find()) {
                             try {
                                 InputStream input = jarFile.getInputStream(jarEntryForJarFile);
-                                String tempDir = System.getProperty("java.io.tmpdir");
-                                File bundledJarFile = new File(tempDir + File.separator + jarFileName + File.separator + jarEntryNameForJarFile);
+                                final var bundledJarFilePathStr = tmpDir + jarFileName + File.separator + jarEntryNameForJarFile;
+                                File bundledJarFile = new File(bundledJarFilePathStr);
+                                Path bundledJarFilePath = bundledJarFile.toPath();
+                                // Save the file to tmp dir
                                 FileUtils.copyInputStreamToFile(input, bundledJarFile);
-//                        LOG.infof("Created file: %s", bundledJarFile);
-                                final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, bundledJarFile.toPath());
-                                manifests.addAll(manifestEntries);
-                                if (FileUtils.deleteQuietly(bundledJarFile)) {
-//                            LOG.infof("Deleted file: %s", bundledJarFile);
+
+                                // Check if the file is an archive?
+                                if (isArchive(bundledJarFilePath)) {
+                                    // Decompress the archive
+                                    final var targetUnzipDir = tmpDir + bundledJarFilePathStr;
+                                    final Set<String> entrySet = decompressArchive(bundledJarFilePath, targetUnzipDir);
+                                    // Call this method recursively for the archive
+                                    entrySet.stream()
+                                            .parallel()
+                                            .forEach(archiveEntry -> {
+                                                final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir);
+                                                manifests.addAll(manifestEntries);
+                                            });
+                                } else {
+                                    final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, bundledJarFilePath, tmpDir);
+                                    manifests.addAll(manifestEntries);
                                 }
+//                                FileUtils.deleteQuietly(bundledJarFile);
                             } catch (Exception e) {
-                                LOG.errorf(e, "Exception occurred while processing %s\n", jarFileName + ":" + jarEntryNameForJarFile);
+//                            LOG.errorf(e, "Exception occurred while processing %s\n", jarFileName + ":" + jarEntryNameForJarFile);
                             }
+//                        }
                         }
                     }
+                } catch (Exception e) {
+                    // java.util.zip.ZipException: zip END header not found /tmp/koala/downloads/fuse/7.8.0/unzip/redhat-fuse-7.8.0-sources.zip/fuse-karaf-7.8.0.fuse-780038-redhat-00001/modules/fuse-patch/patch-management/src/test/resources/content/patch9/system/org/jboss/fuse/fuse-tranquility/1.2.4/fuse-tranquility-1.2.4.jar
+                    if (!scanMainJarManifestFinished) {
+                        manifestEntry = new ManifestEntry(productName, productVersion, UNKNOWN, UNKNOWN, UNKNOWN, jarFileName, UNKNOWN, jarAbsolutePath, null);
+                        scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
+                    }
+//                LOG.errorf(e, "Exception occurred while processing %s\n", jarPathToFile);
                 }
-            } catch (Exception e) {
-                // java.util.zip.ZipException: zip END header not found /tmp/koala/downloads/fuse/7.8.0/unzip/redhat-fuse-7.8.0-sources.zip/fuse-karaf-7.8.0.fuse-780038-redhat-00001/modules/fuse-patch/patch-management/src/test/resources/content/patch9/system/org/jboss/fuse/fuse-tranquility/1.2.4/fuse-tranquility-1.2.4.jar
-                if (!scanMainJarManifestFinished) {
-                    manifestEntry = new ManifestEntry(productName, productVersion, UNKNOWN, UNKNOWN, UNKNOWN, jarFileName, UNKNOWN, jarAbsolutePath, null);
-                    scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
-                }
-                LOG.errorf(e, "Exception occurred while processing %s\n", jarPathToFile);
-            }
 
-            if (scanMainJarManifestFinished) {
-                if (manifestEntry.getPath() == null) {
-                    System.out.println();
+                if (scanMainJarManifestFinished) {
+                    if (manifestEntry.getPath() == null) {
+                        System.out.println();
+                    }
+                    manifests.add(manifestEntry);
+                } else {
+                    LOG.warnf("Failed to generate manifest from %s", jarPathToFile);
                 }
-                manifests.add(manifestEntry);
-            } else {
-                LOG.warnf("Failed to generate manifest from %s", jarPathToFile);
             }
         }
         return manifests;
