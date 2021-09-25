@@ -45,14 +45,10 @@ public class Alpaca {
     public static final String COMMA_SEPARATE = ",";
 
     public static Set<ManifestEntry> scanManifestEntry(final Path jarFilePath, final String tmpDir) {
-        return scanManifestEntry("", "", jarFilePath, tmpDir, "");
+        return scanManifestEntry("", "", jarFilePath, tmpDir);
     }
 
     public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String tmpDir) {
-        return scanManifestEntry(productName, productVersion, jarFilePath, tmpDir, "");
-    }
-
-    public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String tmpDir, final String targetDecompressDir) {
         final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
 
         // Check if the input path is a directory?
@@ -64,7 +60,7 @@ public class Alpaca {
                         .filter(Files::isRegularFile)
                         .filter(file -> !Pattern.compile(Pattern.quote("/\\.git/"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
                         .forEach(file -> {
-                            final var manifestEntries = scanManifestEntry(productName, productVersion, file, tmpDir, targetDecompressDir);
+                            final var manifestEntries = scanManifestEntry(productName, productVersion, file, tmpDir);
                             manifests.addAll(manifestEntries);
                         });
             } catch (Exception e) {
@@ -88,7 +84,7 @@ public class Alpaca {
                 ManifestEntry manifestEntry = null;
 
                 final var jarPathToFile = jarFilePath.toFile();
-                final var jarAbsolutePath = jarPathToFile.getAbsolutePath().replaceAll(targetDecompressDir, "");
+                final var jarAbsolutePath = jarPathToFile.getAbsolutePath();
                 final var jarFileName = jarPathToFile.getName();
 
                 try (final JarFile jarFile = new JarFile(jarPathToFile)) {

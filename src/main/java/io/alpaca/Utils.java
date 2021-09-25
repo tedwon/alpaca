@@ -6,7 +6,6 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jboss.logging.Logger;
 
@@ -49,7 +48,6 @@ public class Utils {
 
     private static final Set<String> javaArchiveFormats = Sets.newHashSet();
     private static final Set<String> archiveFormats = Sets.newHashSet();
-    private static final Set<String> blackListSet = Sets.newHashSet();
 
     static {
         javaArchiveFormats.add(JAR_ARCHIVE);
@@ -59,16 +57,6 @@ public class Utils {
         archiveFormats.add(GZ_ARCHIVE);
         archiveFormats.add(GZIP_ARCHIVE);
         archiveFormats.add(TAR_ARCHIVE);
-
-        blackListSet.add("java");
-    }
-
-    public static boolean isValidManifestTargetFormat(Path path) {
-        final var fileExtension = com.google.common.io.Files.getFileExtension(path.toString());
-        if (!blackListSet.contains(fileExtension)) {
-            return true;
-        }
-        return false;
     }
 
     public static boolean isJavaArchive(Path path) {
@@ -81,6 +69,7 @@ public class Utils {
         }
         return false;
     }
+
     public static boolean isArchive(Path path) {
         try {
             final var contentType = Files.probeContentType(path);
@@ -105,20 +94,11 @@ public class Utils {
         } else {
             LOG.infof("Found unknown compressed file: %s", zipFile);
         }
-
-        // delete zipFile after decompression to save disk usage
-//        try {
-//            FileUtils.forceDelete(zipFile.toFile());
-////            LOG.infof("Deleted zip file: %s", zipFile);
-//        } catch (IOException e) {
-//            LOG.errorf(e, "Exception occurred while deleting %s\n", zipFile);
-//        }
-
         return unzippedFileEntrySet;
     }
 
     public static Set<String> unzip(final String targetUnZipDir, final Path zipFile) {
-//        LOG.infof("Unzipping %s to %s", zipFile, targetUnZipDir);
+        LOG.infof("Unzipping %s to %s", zipFile, targetUnZipDir);
 
         final Set<String> unzippedFileEntrySet = Sets.newConcurrentHashSet();
 
@@ -160,7 +140,7 @@ public class Utils {
         } catch (Exception e) {
             LOG.errorf(e, "Exception occurred while unzip %s\n", zipFile);
         }
-//        LOG.infof("Unzipped %s entries from %s to %s", unzippedFileEntrySet.size(), zipFile, targetUnZipDir);
+        LOG.infof("Unzipped %s entries from %s to %s", unzippedFileEntrySet.size(), zipFile, targetUnZipDir);
         return unzippedFileEntrySet;
     }
 
