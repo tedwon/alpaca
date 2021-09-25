@@ -30,11 +30,9 @@ import static io.alpaca.Utils.isArchive;
 import static io.alpaca.Utils.isJavaArchive;
 
 /**
- * Generate manifest entries for a given jar file.
+ * Generate manifest for an archive file or directory.
  * <p/>
  * See: https://github.com/tedwon/alpaca
- * <p/>
- * TODO: replace this class with alpaca project: https://github.com/tedwon/alpaca/blob/master/src/main/java/io/alpaca/Alpaca.java
  */
 public class Alpaca {
 
@@ -44,49 +42,8 @@ public class Alpaca {
 
     public static final String UNKNOWN = "Unknown";
 
-    /**
-     * comma separate.
-     */
     public static final String COMMA_SEPARATE = ",";
 
-    /**
-     * check if the jar file has META-INF/MANIFEST
-     * read MANIFEST
-     * check if the jar file has META-INF/build.metadata
-     * read build.metadata
-     * <p>
-     * check whether it is uberjar or not
-     * <p>
-     * if it is uberjar
-     * find pom.xml of the jar file among all pom.xml files including bundled jars in the file
-     * read pom.xml
-     * create manifest entry for the bundled jar inside of the jar file
-     * <p>
-     * if it is not uberjar
-     * <p>
-     * check whether there is any other jar file inside the jar file
-     * if found a jar
-     * recursively call this method for the jar
-     * <p>
-     * /home/jwon/Downloads/gson-2.8.5.redhat-00001.jar
-     * <p></p>
-     * /home/jwon/Downloads/kubernetes-openshift-uberjar-4.6.3.jar
-     * <p/>
-     * /home/jwon/Downloads/httpclient-osgi-4.5.13.redhat-00002.jar
-     * <p/>
-     * /home/jwon/Downloads/quarkus-platform-descriptor-json-1.11.6.Final-redhat-00001.jar
-     * <p>
-     * /home/jwon/Downloads/fuse-tranquility-1.2.4.jar
-     * <p>
-     * /home/jwon/Downloads/codereadystudio-12.19.0.GA-installer-standalone.jar
-     * <p/>
-     * find ./ -name "*.jar" -type f
-     * ./gradle-wrapper/gradle/wrapper/gradle-wrapper.jar
-     * ./codestarts/quarkus/core/tooling/gradle-wrapper/base/gradle/wrapper/gradle-wrapper.jar
-     *
-     * @param jarFilePath
-     * @return
-     */
     public static Set<ManifestEntry> scanManifestEntry(final Path jarFilePath, final String tmpDir) {
         return scanManifestEntry("", "", jarFilePath, tmpDir, "");
     }
@@ -96,7 +53,6 @@ public class Alpaca {
     }
 
     public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String tmpDir, final String targetDecompressDir) {
-
         final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
 
         // Check if the input path is a directory?
