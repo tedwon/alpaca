@@ -43,7 +43,7 @@ public class Utils {
     public static final String RAR_ARCHIVE = "application/vnd.rar"; // rar
     public static final String ZIP_ARCHIVE = "application/zip";
     public static final String GZ_ARCHIVE = "application/gzip"; // gz
-    public static final String GZIP_ARCHIVE = " => application/gzip"; // tar.gz tgz
+    public static final String GZIP_ARCHIVE = "application/gzip"; // tar.gz tgz
     public static final String TAR_ARCHIVE = "application/x-tar"; // tar
 
     private static final Set<String> javaArchiveFormats = Sets.newHashSet();
@@ -51,6 +51,12 @@ public class Utils {
 
     static {
         javaArchiveFormats.add(JAR_ARCHIVE);
+        javaArchiveFormats.add("jar");
+        javaArchiveFormats.add("war");
+        javaArchiveFormats.add("ear");
+        javaArchiveFormats.add("rar");
+        javaArchiveFormats.add("adm");
+        javaArchiveFormats.add("hpi");
 
         archiveFormats.add(RAR_ARCHIVE);
         archiveFormats.add(ZIP_ARCHIVE);
@@ -61,7 +67,11 @@ public class Utils {
 
     public static boolean isJavaArchive(Path path) {
         try {
-            final var contentType = Files.probeContentType(path);
+            var contentType = Files.probeContentType(path);
+            if (contentType == null) {
+                final var fileExtension = com.google.common.io.Files.getFileExtension(path.toString());
+                contentType = fileExtension;
+            }
             if (javaArchiveFormats.contains(contentType)) {
                 return true;
             }
@@ -72,7 +82,11 @@ public class Utils {
 
     public static boolean isArchive(Path path) {
         try {
-            final var contentType = Files.probeContentType(path);
+            var contentType = Files.probeContentType(path);
+            if (contentType == null) {
+                final var fileExtension = com.google.common.io.Files.getFileExtension(path.toString());
+                contentType = fileExtension;
+            }
             if (archiveFormats.contains(contentType)) {
                 return true;
             }
@@ -83,16 +97,13 @@ public class Utils {
 
     public static Set<String> decompressArchive(final Path zipFile, final String targetUnzipDir) {
         final Set<String> unzippedFileEntrySet = Sets.newConcurrentHashSet();
-        // Unzip .zip or .adm files
         final String zipFileStr = zipFile.getFileName().toString();
-        if (zipFileStr.endsWith(ZIP) || zipFileStr.endsWith(JAR) || zipFileStr.endsWith(ADM)) {
-            unzippedFileEntrySet.addAll(unzip(targetUnzipDir, zipFile));
-        } else if (zipFileStr.endsWith(TAR)) {
+        if (zipFileStr.endsWith(TAR)) {
             unzippedFileEntrySet.addAll(decompressTarFile(targetUnzipDir, zipFile));
         } else if (zipFileStr.endsWith(TAR_GZ) || zipFileStr.endsWith(TGZ)) {
             unzippedFileEntrySet.addAll(decompressTarGzFile(targetUnzipDir, zipFile));
         } else {
-            LOG.infof("Found unknown compressed file: %s", zipFile);
+            unzippedFileEntrySet.addAll(unzip(targetUnzipDir, zipFile));
         }
         return unzippedFileEntrySet;
     }

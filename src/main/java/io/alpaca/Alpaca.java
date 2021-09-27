@@ -2,12 +2,10 @@ package io.alpaca;
 
 import com.google.common.collect.Sets;
 import io.alpaca.models.ManifestEntry;
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.jboss.logging.Logger;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,13 +69,11 @@ public class Alpaca {
             if (isArchive(jarFilePath)) {
                 // Decompress the archive
                 final var targetUnzipDir = tmpDir + jarFilePath;
-                final Set<String> entrySet = decompressArchive(jarFilePath, targetUnzipDir);
                 // Call this method recursively for the archive
-                entrySet.stream()
+                decompressArchive(jarFilePath, targetUnzipDir).stream()
                         .parallel()
                         .forEach(archiveEntry -> {
-                            final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir);
-                            manifests.addAll(manifestEntries);
+                            manifests.addAll(Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir));
                         });
             } else if (isJavaArchive(jarFilePath)) {
                 boolean scanMainJarManifestFinished = false;
@@ -88,6 +84,14 @@ public class Alpaca {
                 final var jarFileName = jarPathToFile.getName();
 
                 try (final JarFile jarFile = new JarFile(jarPathToFile)) {
+                    // Decompress the archive && Manifest bundled jars inside the input jar file
+                    final var targetUnzipDir = tmpDir + jarFilePath;
+                    decompressArchive(jarFilePath, targetUnzipDir).stream()
+                            .parallel()
+                            .forEach(archiveEntry -> {
+                                manifests.addAll(Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir));
+                            });
+
                     // check if the jar file has META-INF/MANIFEST
                     Manifest manifest = jarFile.getManifest();
                     if (manifest != null) {
@@ -251,42 +255,6 @@ public class Alpaca {
                             scanMainJarManifestFinished = checkManifestEntry(manifestEntry);
                         } else {
                             scanMainJarManifestFinished = true;
-                        }
-                    }
-
-                    // Check if there is any other archive files inside the jar file
-                    // If found out an archive
-                    // Call this method recursively for the archive
-                    final Enumeration<JarEntry> entries = jarFile.entries();
-                    while (entries.hasMoreElements()) {
-                        JarEntry jarEntryForJarFile = entries.nextElement();
-                        String jarEntryNameForJarFile = jarEntryForJarFile.getName();
-                        try {
-                            InputStream input = jarFile.getInputStream(jarEntryForJarFile);
-                            final var bundledJarFilePathStr = tmpDir + jarFileName + File.separator + jarEntryNameForJarFile;
-                            File bundledJarFile = new File(bundledJarFilePathStr);
-                            Path bundledJarFilePath = bundledJarFile.toPath();
-                            // Save the file to tmp dir
-                            FileUtils.copyInputStreamToFile(input, bundledJarFile);
-
-                            // Check if the file is an archive?
-                            if (isArchive(bundledJarFilePath)) {
-                                // Decompress the archive
-                                final var targetUnzipDir = tmpDir + bundledJarFilePathStr;
-                                final Set<String> entrySet = decompressArchive(bundledJarFilePath, targetUnzipDir);
-                                // Call this method recursively for the archive
-                                entrySet.stream()
-                                        .parallel()
-                                        .forEach(archiveEntry -> {
-                                            final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir);
-                                            manifests.addAll(manifestEntries);
-                                        });
-                            } else {
-                                final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, bundledJarFilePath, tmpDir);
-                                manifests.addAll(manifestEntries);
-                            }
-                        } catch (Exception e) {
-//                            LOG.errorf(e, "Exception occurred while processing %s\n", jarFileName + ":" + jarEntryNameForJarFile);
                         }
                     }
                 } catch (Exception e) {
