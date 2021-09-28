@@ -28,8 +28,6 @@ public class App {
 
     private static String MANIFEST = "manifest";
 
-    private static final String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "alpaca" + File.separator + ProcessHandle.current().pid() + File.separator;
-
     public static void main(String[] args) {
         String targetClass = null;
         String jarPath;
@@ -49,15 +47,11 @@ public class App {
 
         if (targetClass != null && MANIFEST.equals(targetClass)) {
             final Set<String> lineSet = Collections.synchronizedSortedSet(Sets.newTreeSet());
-
-            final var manifestEntries = Alpaca.scanManifestEntry(Paths.get(jarPath), tmpDir);
+            final var manifestEntries = Alpaca.scanManifestEntry(Paths.get(jarPath));
             for (ManifestEntry manifestEntry : manifestEntries) {
                 lineSet.add(manifestEntry.toDeptopiaManifest());
             }
             output.append(String.join("\n", lineSet));
-
-            // Clean up decompressed dir
-            FileUtils.deleteQuietly(Paths.get(tmpDir).toFile());
         } else {
             try (JarFile jarFile = new JarFile(Paths.get(jarPath).toFile())) {
                 Enumeration<JarEntry> entries = jarFile.entries();

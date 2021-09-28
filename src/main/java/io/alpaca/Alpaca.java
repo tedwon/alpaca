@@ -2,10 +2,12 @@ package io.alpaca;
 
 import com.google.common.collect.Sets;
 import io.alpaca.models.ManifestEntry;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.jboss.logging.Logger;
 
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +18,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -42,12 +45,14 @@ public class Alpaca {
 
     public static final String COMMA_SEPARATE = ",";
 
-    public static Set<ManifestEntry> scanManifestEntry(final Path jarFilePath, final String tmpDir) {
-        return scanManifestEntry("", "", jarFilePath, tmpDir);
+    public static Set<ManifestEntry> scanManifestEntry(final Path jarFilePath) {
+        return scanManifestEntry("", "", jarFilePath);
     }
 
-    public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath, final String tmpDir) {
+    public static Set<ManifestEntry> scanManifestEntry(final String productName, final String productVersion, final Path jarFilePath) {
         final Set<ManifestEntry> manifests = Collections.synchronizedSet(Sets.newHashSet());
+
+        final String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "alpaca" + File.separator + ProcessHandle.current().pid() + File.separator + UUID.randomUUID() + File.separator;
 
         // Check if the input path is a directory?
         if (Files.isDirectory(jarFilePath) && !Files.isRegularFile(jarFilePath)) {
@@ -58,11 +63,11 @@ public class Alpaca {
                         .filter(Files::isRegularFile)
                         .filter(file -> !Pattern.compile(Pattern.quote("/\\.git/"), Pattern.CASE_INSENSITIVE).matcher(file.toString()).find())
                         .forEach(file -> {
-                            final var manifestEntries = scanManifestEntry(productName, productVersion, file, tmpDir);
+                            final var manifestEntries = Alpaca.scanManifestEntry(productName, productVersion, file);
                             manifests.addAll(manifestEntries);
                         });
             } catch (Exception e) {
-//                LOG.errorf(e, "Exception occurred while list up files in %s\n", jarFilePath);
+                LOG.errorf(e, "Exception occurred while list up files in %s\n", jarFilePath);
             }
         } else {
             // Check if the file is an archive?
@@ -73,7 +78,7 @@ public class Alpaca {
                 decompressArchive(jarFilePath, targetUnzipDir).stream()
                         .parallel()
                         .forEach(archiveEntry -> {
-                            manifests.addAll(Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir));
+                            manifests.addAll(Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry)));
                         });
             } else if (isJavaArchive(jarFilePath)) {
                 boolean scanMainJarManifestFinished = false;
@@ -89,7 +94,7 @@ public class Alpaca {
                     decompressArchive(jarFilePath, targetUnzipDir).stream()
                             .parallel()
                             .forEach(archiveEntry -> {
-                                manifests.addAll(Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry), tmpDir));
+                                manifests.addAll(Alpaca.scanManifestEntry(productName, productVersion, Paths.get(archiveEntry)));
                             });
 
                     // check if the jar file has META-INF/MANIFEST
@@ -275,6 +280,12 @@ public class Alpaca {
                     LOG.warnf("Failed to generate manifest from %s", jarPathToFile);
                 }
             }
+        }
+        // Clean up decompressed dir
+        try {
+            FileUtils.deleteQuietly(Paths.get(tmpDir).toFile());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return manifests;
     }
