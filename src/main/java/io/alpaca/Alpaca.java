@@ -344,7 +344,7 @@ public class Alpaca {
             // org.apache.taglibs.taglibs-standard-spec;singleton=true
             String groupId = null;
             final var implementationVendorId = attributes.getValue("Implementation-Vendor-Id");
-            if (implementationVendorId != null && !implementationVendorId.contains(";") && !implementationVendorId.contains("=")) {
+            if (implementationVendorId != null && !implementationVendorId.contains(";") && !implementationVendorId.contains("=") && !implementationVendorId.contains("http://")) {
                 groupId = implementationVendorId;
             }
             if (groupId == null || "".equals(groupId) || groupId.contains("%")) {
@@ -363,7 +363,7 @@ public class Alpaca {
                 artifactId = attributes.getValue("Bundle-Name");
                 if (artifactId == null || "".equals(artifactId) || artifactId.contains(" ")) {
                     artifactId = attributes.getValue("Specification-Title");
-                    if (artifactId == null || artifactId.contains(" ")) {
+                    if (artifactId == null || artifactId.contains(" ") || artifactId.contains("JBoss")) {
                         if (attributes.getValue("Bundle-SymbolicName") != null) {
                             artifactId = attributes.getValue("Bundle-SymbolicName");
                         } else {
