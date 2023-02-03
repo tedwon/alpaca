@@ -57,6 +57,15 @@ public class Utils {
         javaArchiveFormats.add("rar");
         javaArchiveFormats.add("adm");
         javaArchiveFormats.add("hpi");
+        javaArchiveFormats.add("application/java-archive");
+        javaArchiveFormats.add("application/x-java-jnlp-file");
+        javaArchiveFormats.add("application/bz2");
+        javaArchiveFormats.add("application/x-gzip");
+        javaArchiveFormats.add("text/javascript");
+        javaArchiveFormats.add("application/octet-stream");
+        javaArchiveFormats.add("text/x-ruby-script");
+        javaArchiveFormats.add("application/postscript");
+        javaArchiveFormats.add("text/x-python-script");
 
         archiveFormats.add(RAR_ARCHIVE);
         archiveFormats.add(ZIP_ARCHIVE);
